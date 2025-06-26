@@ -1,7 +1,8 @@
 import aiohttp
 import yaml
 import os
-from config import GIT_REPO_URL, ARGO_APPS_FOLDER
+import base64
+from config import GIT_REPO_URL, ARGO_APPS_FOLDER, GIT_BRANCH, GIT_TOKEN
 
 def get_repo_info():
     """Convert git@github.com:user/repo.git to (user, repo)"""
@@ -14,13 +15,18 @@ def get_repo_info():
 
 async def fetch_github_yaml_files():
     user, repo = get_repo_info()
-    branch = "main"
-    api_url = f"https://api.github.com/repos/{user}/{repo}/contents/{ARGO_APPS_FOLDER}"
-    raw_base = f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{ARGO_APPS_FOLDER}"
+    api_url = (
+        f"https://api.github.com/repos/{user}/{repo}/contents/"
+        f"{ARGO_APPS_FOLDER}?ref={GIT_BRANCH}"
+    )
+
+    headers = {"Accept": "application/vnd.github.v3+json"}
+    if GIT_TOKEN:
+        headers["Authorization"] = f"Bearer {GIT_TOKEN}"
 
     yamls = []
 
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(headers=headers) as session:
         async with session.get(api_url) as resp:
             if resp.status != 200:
                 raise Exception(f"Failed to list files in folder: {resp.status}")
@@ -28,11 +34,14 @@ async def fetch_github_yaml_files():
 
         for f in files:
             if f["name"].endswith((".yaml", ".yml")):
-                raw_url = f"{raw_base}/{f['name']}"
-                async with session.get(raw_url) as yf:
+                file_url = f["url"]
+                async with session.get(file_url) as yf:
                     if yf.status != 200:
                         continue
-                    content = await yf.text()
+                    file_data = await yf.json()
+                    content = file_data.get("content", "")
+                    if file_data.get("encoding") == "base64":
+                        content = base64.b64decode(content).decode()
                     docs = list(yaml.safe_load_all(content))
                     yamls.extend([doc for doc in docs if doc])
     return yamls
