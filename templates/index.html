@@ -57,14 +57,15 @@ async function loadAppData() {
     const row = document.createElement("tr");
 
     const safe = val => val ?? "n/a";
-
+    row.dataset.name = app.name;
+    row.dataset.chart = app.chart;
     row.innerHTML = `
       <td>${safe(app.name)}</td>
       <td>${safe(app.kind)}</td>
       <td>${safe(app.repoURL)}</td>
       <td>${safe(app.chart)}</td>
       <td>${safe(app.currentVersion)}</td>
-      <td>${app.latestVersion.includes("error")
+      <td class="latest-version">${app.latestVersion.includes("error")
               ? `<span title="${app.latestVersion.slice(7, -1)}">error</span>`
               : app.latestVersion}</td>
     `;
