@@ -4,6 +4,9 @@ import os
 GIT_REPO_URL = os.getenv("git_repo_url", "git@github.com:micxba/gitops.git")
 GIT_BRANCH = os.getenv("git_branch", "main")
 
+# Personal access token for private repositories (GitHub or GitLab)
+GIT_TOKEN = os.getenv("git_token")
+
 # Folder within the repo to scan for Argo Application YAMLs
 ARGO_APPS_FOLDER = os.getenv("argo_apps_folder", "apps")
 
