@@ -2,7 +2,8 @@ import os
 
 # Remote Git configuration
 GIT_REPO_URL = os.getenv("git_repo_url", "git@github.com:micxba/gitops.git")
-GIT_BRANCH = os.getenv("git_branch", "main")
+_branches = os.getenv("git_branches") or os.getenv("git_branch", "main")
+GIT_BRANCHES = [b.strip() for b in _branches.split(',') if b.strip()]
 
 # Personal access token for private repositories (GitHub or GitLab)
 GIT_TOKEN = os.getenv("git_token")

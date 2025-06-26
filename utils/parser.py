@@ -2,7 +2,7 @@ import aiohttp
 import yaml
 import os
 import base64
-from config import GIT_REPO_URL, ARGO_APPS_FOLDER, GIT_BRANCH, GIT_TOKEN
+from config import GIT_REPO_URL, ARGO_APPS_FOLDER, GIT_BRANCHES, GIT_TOKEN
 
 def get_repo_info():
     """Convert git@github.com:user/repo.git to (user, repo)"""
@@ -13,11 +13,13 @@ def get_repo_info():
     parts = repo_url.split("/")
     return parts[0], parts[1]  # user, repo
 
-async def fetch_github_yaml_files():
+async def fetch_github_yaml_files(branch=None):
+    if branch is None:
+        branch = GIT_BRANCHES[0]
     user, repo = get_repo_info()
     api_url = (
         f"https://api.github.com/repos/{user}/{repo}/contents/"
-        f"{ARGO_APPS_FOLDER}?ref={GIT_BRANCH}"
+        f"{ARGO_APPS_FOLDER}?ref={branch}"
     )
 
     headers = {"Accept": "application/vnd.github.v3+json"}
